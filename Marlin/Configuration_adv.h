@@ -1335,7 +1335,7 @@
  *
  * Override the default value based on the driver type set in Configuration.h.
  */
-//#define MINIMUM_STEPPER_PULSE 2
+#define MINIMUM_STEPPER_PULSE 1
 
 /**
  * Maximum stepping rate (in Hz) the stepper driver allows
@@ -1868,7 +1868,7 @@
 #define Z_HYBRID_THRESHOLD 3
 #define Z2_HYBRID_THRESHOLD 3
 #define Z3_HYBRID_THRESHOLD 3
-#define E0_HYBRID_THRESHOLD 30
+#define E0_HYBRID_THRESHOLD 10
 #define E1_HYBRID_THRESHOLD 30
 #define E2_HYBRID_THRESHOLD 30
 #define E3_HYBRID_THRESHOLD 30
