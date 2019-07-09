@@ -1672,7 +1672,7 @@
 #define INTERPOLATE true    // Interpolate X/Y/Z_MICROSTEPS to 256
 
 #if AXIS_IS_TMC(X)
-#define X_CURRENT 800   // (mA) RMS current. Multiply by 1.414 for peak current.
+#define X_CURRENT 525   // (mA) RMS current. Multiply by 1.414 for peak current.
 #define X_MICROSTEPS 16 // 0..256
 #define X_RSENSE 0.11
 #endif
@@ -1684,7 +1684,7 @@
 #endif
 
 #if AXIS_IS_TMC(Y)
-#define Y_CURRENT 800
+#define Y_CURRENT 600
 #define Y_MICROSTEPS 16
 #define Y_RSENSE 0.11
 #endif
@@ -1696,7 +1696,7 @@
 #endif
 
 #if AXIS_IS_TMC(Z)
-#define Z_CURRENT 800
+#define Z_CURRENT 675
 #define Z_MICROSTEPS 16
 #define Z_RSENSE 0.11
 #endif
@@ -1714,13 +1714,13 @@
 #endif
 
 #if AXIS_IS_TMC(E0)
-#define E0_CURRENT 800
+#define E0_CURRENT 600
 #define E0_MICROSTEPS 16
 #define E0_RSENSE 0.11
 #endif
 
 #if AXIS_IS_TMC(E1)
-#define E1_CURRENT 800
+#define E1_CURRENT 675
 #define E1_MICROSTEPS 16
 #define E1_RSENSE 0.11
 #endif
@@ -1806,7 +1806,7 @@
    * Use for drivers that do not use a dedicated enable pin, but rather handle the same
    * function through a communication line such as SPI or UART.
    */
-//#define SOFTWARE_DRIVER_ENABLE
+// #define SOFTWARE_DRIVER_ENABLE
 
 /**
    * TMC2130, TMC2160, TMC2208, TMC2209, TMC5130 and TMC5160 only
@@ -1815,7 +1815,7 @@
    */
 #define STEALTHCHOP_XY
 #define STEALTHCHOP_Z
-#define STEALTHCHOP_E
+// #define STEALTHCHOP_E
 
 /**
    * Optimize spreadCycle chopper parameters by using predefined parameter sets
@@ -1859,11 +1859,11 @@
    * STEALTHCHOP_(XY|Z|E) must be enabled to use HYBRID_THRESHOLD.
    * M913 X/Y/Z/E to live tune the setting
    */
-//#define HYBRID_THRESHOLD
+#define HYBRID_THRESHOLD
 
-#define X_HYBRID_THRESHOLD 100 // [mm/s]
+#define X_HYBRID_THRESHOLD 150 // [mm/s]
 #define X2_HYBRID_THRESHOLD 100
-#define Y_HYBRID_THRESHOLD 100
+#define Y_HYBRID_THRESHOLD 150
 #define Y2_HYBRID_THRESHOLD 100
 #define Z_HYBRID_THRESHOLD 3
 #define Z2_HYBRID_THRESHOLD 3
