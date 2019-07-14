@@ -1702,7 +1702,7 @@
 #endif
 
 #if AXIS_IS_TMC(Z2)
-#define Z2_CURRENT 800
+#define Z2_CURRENT 675
 #define Z2_MICROSTEPS 16
 #define Z2_RSENSE 0.11
 #endif
@@ -1726,7 +1726,7 @@
 #endif
 
 #if AXIS_IS_TMC(E2)
-#define E2_CURRENT 800
+#define E2_CURRENT 675
 #define E2_MICROSTEPS 16
 #define E2_RSENSE 0.11
 #endif
