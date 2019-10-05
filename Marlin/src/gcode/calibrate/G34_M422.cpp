@@ -45,8 +45,17 @@
 #define DEBUG_OUT ENABLED(DEBUG_LEVELING_FEATURE)
 #include "../../core/debug_out.h"
 
-float z_auto_align_xpos[Z_STEPPER_COUNT] = Z_STEPPER_ALIGN_X,
-      z_auto_align_ypos[Z_STEPPER_COUNT] = Z_STEPPER_ALIGN_Y;
+// Sanity-check
+constexpr xy_pos_t sanity_arr_z_align[] = Z_STEPPER_ALIGN_XY;
+static_assert(COUNT(sanity_arr_z_align) == Z_STEPPER_COUNT,
+  #if ENABLED(Z_TRIPLE_STEPPER_DRIVERS)
+    "Z_STEPPER_ALIGN_XY requires three {X,Y} entries (Z, Z2, and Z3)."
+  #else
+    "Z_STEPPER_ALIGN_XY requires two {X,Y} entries (Z and Z2)."
+  #endif
+);
+
+xy_pos_t z_auto_align_pos[Z_STEPPER_COUNT] = Z_STEPPER_ALIGN_XY;
 
 inline void set_all_z_lock(const bool lock) {
   stepper.set_z_lock(lock);
@@ -123,24 +132,26 @@ void GcodeSuite::G34() {
 
     float z_probe = Z_BASIC_CLEARANCE + (G34_MAX_GRADE) * 0.01f * (
       #if ENABLED(Z_TRIPLE_STEPPER_DRIVERS)
-         SQRT(MAX(HYPOT2(z_auto_align_xpos[0] - z_auto_align_ypos[0], z_auto_align_xpos[1] - z_auto_align_ypos[1]),
-                  HYPOT2(z_auto_align_xpos[1] - z_auto_align_ypos[1], z_auto_align_xpos[2] - z_auto_align_ypos[2]),
-                  HYPOT2(z_auto_align_xpos[2] - z_auto_align_ypos[2], z_auto_align_xpos[0] - z_auto_align_ypos[0])))
+         SQRT(_MAX(HYPOT2(z_auto_align_pos[0].x - z_auto_align_pos[0].y, z_auto_align_pos[1].x - z_auto_align_pos[1].y),
+                  HYPOT2(z_auto_align_pos[1].x - z_auto_align_pos[1].y, z_auto_align_pos[2].x - z_auto_align_pos[2].y),
+                  HYPOT2(z_auto_align_pos[2].x - z_auto_align_pos[2].y, z_auto_align_pos[0].x - z_auto_align_pos[0].y)))
       #else
-         HYPOT(z_auto_align_xpos[0] - z_auto_align_ypos[0], z_auto_align_xpos[1] - z_auto_align_ypos[1])
+         HYPOT(z_auto_align_pos[0].x - z_auto_align_pos[0].y, z_auto_align_pos[1].x - z_auto_align_pos[1].y)
       #endif
     );
 
     // Home before the alignment procedure
-    if (homing_needed()) home_all_axes();
+    if (!all_axes_known()) home_all_axes();
 
     // Move the Z coordinate realm towards the positive - dirty trick
-    current_position[Z_AXIS] -= z_probe * 0.5;
+    current_position.z -= z_probe * 0.5f;
 
     float last_z_align_move[Z_STEPPER_COUNT] = ARRAY_N(Z_STEPPER_COUNT, 10000.0f, 10000.0f, 10000.0f),
           z_measured[Z_STEPPER_COUNT] = { 0 },
           z_maxdiff = 0.0f,
           amplification = z_auto_align_amplification;
+
+    const ProbePtRaise raise_after = parser.boolval('E') ? PROBE_PT_STOW : PROBE_PT_RAISE;
 
     uint8_t iteration;
     bool err_break = false;
@@ -159,22 +170,22 @@ void GcodeSuite::G34() {
         // Safe clearance even on an incline
         if (iteration == 0 || izstepper > 0) do_blocking_move_to_z(z_probe);
 
-        // Probe a Z height for each stepper
-        if (isnan(probe_pt(z_auto_align_xpos[zstepper], z_auto_align_ypos[zstepper], PROBE_PT_RAISE, 0, true))) {
+        // Probe a Z height for each stepper.
+        const float z_probed_height = probe_at_point(z_auto_align_pos[zstepper], raise_after, 0, true);
+        if (isnan(z_probed_height)) {
           SERIAL_ECHOLNPGM("Probing failed.");
           err_break = true;
           break;
         }
 
-        // This is not the trigger Z value. It is the position of the probe after raising it.
-        // It is higher than the trigger value by a constant value (not known here). This value
-        // is more useful for determining the desired next iteration Z position for probing. It is
-        // equally well suited for determining the misalignment, just like the trigger position would be.
-        z_measured[zstepper] = current_position[Z_AXIS];
+        // Add height to each value, to provide a more useful target height for
+        // the next iteration of probing. This allows adjustments to be made away from the bed.
+        z_measured[zstepper] = z_probed_height + Z_CLEARANCE_BETWEEN_PROBES;
+
         if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("> Z", int(zstepper + 1), " measured position is ", z_measured[zstepper]);
 
         // Remember the minimum measurement to calculate the correction later on
-        z_measured_min = MIN(z_measured_min, z_measured[zstepper]);
+        z_measured_min = _MIN(z_measured_min, z_measured[zstepper]);
       } // for (zstepper)
 
       if (err_break) break;
@@ -182,11 +193,11 @@ void GcodeSuite::G34() {
       // Adapt the next probe clearance height based on the new measurements.
       // Safe_height = lowest distance to bed (= highest measurement) plus highest measured misalignment.
       #if ENABLED(Z_TRIPLE_STEPPER_DRIVERS)
-        z_maxdiff = MAX(ABS(z_measured[0] - z_measured[1]), ABS(z_measured[1] - z_measured[2]), ABS(z_measured[2] - z_measured[0]));
-        z_probe = Z_BASIC_CLEARANCE + MAX(z_measured[0], z_measured[1], z_measured[2]) + z_maxdiff;
+        z_maxdiff = _MAX(ABS(z_measured[0] - z_measured[1]), ABS(z_measured[1] - z_measured[2]), ABS(z_measured[2] - z_measured[0]));
+        z_probe = Z_BASIC_CLEARANCE + _MAX(z_measured[0], z_measured[1], z_measured[2]) + z_maxdiff;
       #else
         z_maxdiff = ABS(z_measured[0] - z_measured[1]);
-        z_probe = Z_BASIC_CLEARANCE + MAX(z_measured[0], z_measured[1]) + z_maxdiff;
+        z_probe = Z_BASIC_CLEARANCE + _MAX(z_measured[0], z_measured[1]) + z_maxdiff;
       #endif
 
       SERIAL_ECHOPAIR("\n"
@@ -210,7 +221,7 @@ void GcodeSuite::G34() {
                     z_align_abs = ABS(z_align_move);
 
         // Optimize one iterations correction based on the first measurements
-        if (z_align_abs > 0.0f) amplification = iteration == 1 ? MIN(last_z_align_move[zstepper] / z_align_abs, 2.0f) : z_auto_align_amplification;
+        if (z_align_abs > 0.0f) amplification = iteration == 1 ? _MIN(last_z_align_move[zstepper] / z_align_abs, 2.0f) : z_auto_align_amplification;
 
         // Check for less accuracy compared to last move
         if (last_z_align_move[zstepper] < z_align_abs - 1.0) {
@@ -238,7 +249,7 @@ void GcodeSuite::G34() {
         }
 
         // Do a move to correct part of the misalignment for the current stepper
-        do_blocking_move_to_z(amplification * z_align_move + current_position[Z_AXIS]);
+        do_blocking_move_to_z(amplification * z_align_move + current_position.z);
       } // for (zstepper)
 
       // Back to normal stepper operations
@@ -275,14 +286,14 @@ void GcodeSuite::G34() {
     // After this operation the z position needs correction
     set_axis_is_not_at_home(Z_AXIS);
 
-    // Stow the probe, as the last call to probe_pt(...) left
+    // Stow the probe, as the last call to probe_at_point(...) left
     // the probe deployed if it was successful.
     STOW_PROBE();
 
     // Home Z after the alignment procedure
     process_subcommands_now_P(PSTR("G28 Z"));
 
-  } while(0);
+  }while(0);
 
   if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("<<< G34");
 }
@@ -297,20 +308,22 @@ void GcodeSuite::M422() {
     return;
   }
 
-  const float x_pos = parser.floatval('X', z_auto_align_xpos[zstepper]);
-  if (!WITHIN(x_pos, X_MIN_POS, X_MAX_POS)) {
+  const xy_pos_t pos = {
+    parser.floatval('X', z_auto_align_pos[zstepper].x),
+    parser.floatval('Y', z_auto_align_pos[zstepper].y)
+  };
+
+  if (!WITHIN(pos.x, X_MIN_POS, X_MAX_POS)) {
     SERIAL_ECHOLNPGM("?(X) out of bounds.");
     return;
   }
 
-  const float y_pos = parser.floatval('Y', z_auto_align_ypos[zstepper]);
-  if (!WITHIN(y_pos, Y_MIN_POS, Y_MAX_POS)) {
+  if (!WITHIN(pos.y, Y_MIN_POS, Y_MAX_POS)) {
     SERIAL_ECHOLNPGM("?(Y) out of bounds.");
     return;
   }
 
-  z_auto_align_xpos[zstepper] = x_pos;
-  z_auto_align_ypos[zstepper] = y_pos;
+  z_auto_align_pos[zstepper] = pos;
 }
 
 #endif // Z_STEPPER_AUTO_ALIGN
