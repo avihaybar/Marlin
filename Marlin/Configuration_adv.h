@@ -1491,7 +1491,7 @@
  *
  * Override the default value based on the driver type set in Configuration.h.
  */
-#define MINIMUM_STEPPER_PULSE 1
+#define MINIMUM_STEPPER_PULSE 2
 
 /**
  * Maximum stepping rate (in Hz) the stepper driver allows
@@ -1831,14 +1831,14 @@
 #define INTERPOLATE true    // Interpolate X/Y/Z_MICROSTEPS to 256
 
 #if AXIS_IS_TMC(X)
-#define X_CURRENT 525   // (mA) RMS current. Multiply by 1.414 for peak current.
+#define X_CURRENT 550   // (mA) RMS current. Multiply by 1.414 for peak current.
 #define X_MICROSTEPS 16 // 0..256
 #define X_RSENSE 0.11
 #define X_CHAIN_POS -1 // <=0 : Not chained. 1 : MCU MOSI connected. 2 : Next in chain, ...
 #endif
 
 #if AXIS_IS_TMC(X2)
-#define X2_CURRENT 800
+#define X2_CURRENT 550
 #define X2_MICROSTEPS 16
 #define X2_RSENSE 0.11
 #define X2_CHAIN_POS -1
@@ -1852,7 +1852,7 @@
 #endif
 
 #if AXIS_IS_TMC(Y2)
-#define Y2_CURRENT 800
+#define Y2_CURRENT 600
 #define Y2_MICROSTEPS 16
 #define Y2_RSENSE 0.11
 #define Y2_CHAIN_POS -1
@@ -1873,49 +1873,49 @@
 #endif
 
 #if AXIS_IS_TMC(Z3)
-#define Z3_CURRENT 800
+#define Z3_CURRENT 675
 #define Z3_MICROSTEPS 16
 #define Z3_RSENSE 0.11
 #define Z3_CHAIN_POS -1
 #endif
 
 #if AXIS_IS_TMC(E0)
-#define E0_CURRENT 600
+#define E0_CURRENT 550
 #define E0_MICROSTEPS 16
 #define E0_RSENSE 0.11
 #define E0_CHAIN_POS -1
 #endif
 
 #if AXIS_IS_TMC(E1)
-#define E1_CURRENT 675
+#define E1_CURRENT 550
 #define E1_MICROSTEPS 16
 #define E1_RSENSE 0.11
 #define E1_CHAIN_POS -1
 #endif
 
 #if AXIS_IS_TMC(E2)
-#define E2_CURRENT 800
+#define E2_CURRENT 550
 #define E2_MICROSTEPS 16
 #define E2_RSENSE 0.11
 #define E2_CHAIN_POS -1
 #endif
 
 #if AXIS_IS_TMC(E3)
-#define E3_CURRENT 800
+#define E3_CURRENT 550
 #define E3_MICROSTEPS 16
 #define E3_RSENSE 0.11
 #define E3_CHAIN_POS -1
 #endif
 
 #if AXIS_IS_TMC(E4)
-#define E4_CURRENT 800
+#define E4_CURRENT 550
 #define E4_MICROSTEPS 16
 #define E4_RSENSE 0.11
 #define E4_CHAIN_POS -1
 #endif
 
 #if AXIS_IS_TMC(E5)
-#define E5_CURRENT 800
+#define E5_CURRENT 550
 #define E5_MICROSTEPS 16
 #define E5_RSENSE 0.11
 #define E5_CHAIN_POS -1
@@ -1990,7 +1990,7 @@
    */
 #define STEALTHCHOP_XY
 #define STEALTHCHOP_Z
-// #define STEALTHCHOP_E
+#define STEALTHCHOP_E
 
 /**
    * Optimize spreadCycle chopper parameters by using predefined parameter sets
@@ -2044,7 +2044,7 @@
 #define Z_HYBRID_THRESHOLD 3
 #define Z2_HYBRID_THRESHOLD 3
 #define Z3_HYBRID_THRESHOLD 3
-#define E0_HYBRID_THRESHOLD 10
+#define E0_HYBRID_THRESHOLD 30
 #define E1_HYBRID_THRESHOLD 30
 #define E2_HYBRID_THRESHOLD 30
 #define E3_HYBRID_THRESHOLD 30
@@ -2098,7 +2098,7 @@
    * Beta feature!
    * Create a 50/50 square wave step pulse optimal for stepper drivers.
    */
-//#define SQUARE_WAVE_STEPPING
+#define SQUARE_WAVE_STEPPING
 
 /**
    * Enable M122 debugging command for TMC stepper drivers.
