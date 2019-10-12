@@ -1880,42 +1880,42 @@
 #endif
 
 #if AXIS_IS_TMC(E0)
-#define E0_CURRENT 550
+#define E0_CURRENT 675
 #define E0_MICROSTEPS 16
 #define E0_RSENSE 0.11
 #define E0_CHAIN_POS -1
 #endif
 
 #if AXIS_IS_TMC(E1)
-#define E1_CURRENT 550
+#define E1_CURRENT 675
 #define E1_MICROSTEPS 16
 #define E1_RSENSE 0.11
 #define E1_CHAIN_POS -1
 #endif
 
 #if AXIS_IS_TMC(E2)
-#define E2_CURRENT 550
+#define E2_CURRENT 675
 #define E2_MICROSTEPS 16
 #define E2_RSENSE 0.11
 #define E2_CHAIN_POS -1
 #endif
 
 #if AXIS_IS_TMC(E3)
-#define E3_CURRENT 550
+#define E3_CURRENT 675
 #define E3_MICROSTEPS 16
 #define E3_RSENSE 0.11
 #define E3_CHAIN_POS -1
 #endif
 
 #if AXIS_IS_TMC(E4)
-#define E4_CURRENT 550
+#define E4_CURRENT 675
 #define E4_MICROSTEPS 16
 #define E4_RSENSE 0.11
 #define E4_CHAIN_POS -1
 #endif
 
 #if AXIS_IS_TMC(E5)
-#define E5_CURRENT 550
+#define E5_CURRENT 675
 #define E5_MICROSTEPS 16
 #define E5_RSENSE 0.11
 #define E5_CHAIN_POS -1
